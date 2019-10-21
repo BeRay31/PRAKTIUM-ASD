@@ -54,25 +54,24 @@ void Dealokasi (address *P)
 /****************** PENCARIAN SEBUAH ELEMEN LIST ******************/
 address Search (List L, infotype X)
 {
-    if (IsEmpty(L))
-    {
-        return Nil;
-    }
     address P;
     P = First(L);
-    while ((Info(P) != X) && (P != Nil))
-    {
-        P = Next(P);
-    }
-    if (P == NULL)
+    if (First(L)==Nil)
     {
         return Nil;
     }
     else
     {
+        while ((Info(P) != X) && (P != Nil))
+        {
+            P = Next(P);
+            if (P == Nil)
+            {
+                return Nil;
+            }
+        }
         return P;
     }
-    
 }
 /* Mencari apakah ada elemen list dengan Info(P)= X */
 /* Jika ada, mengirimkan address elemen tersebut. */
@@ -86,8 +85,7 @@ void InsVFirst (List *L, infotype X)
     P = Alokasi (X);
     if (P != Nil)
     {
-        Next(P) = First (*L);
-        First(*L) = P;
+        InsertFirst(L,P);
     }
 }
 /* I.S. L mungkin kosong */
@@ -95,24 +93,11 @@ void InsVFirst (List *L, infotype X)
 /* menambahkan elemen pertama dengan nilai X jika alokasi berhasil */
 void InsVLast (List *L, infotype X)
 {
-    if (IsEmpty(*L))
+    address P,Last;
+    P = Alokasi (X);
+    if ( P != Nil)
     {
-        InsVFirst(L,X);
-    }
-    else
-    {
-        address P,Last;
-        P = Alokasi (X);
-        if (P != Nil)
-        {
-            Last = First(*L);
-            while (Next(Last) != Nil)
-            {
-                Last = Next(Last);
-            }
-            Next(P) = Next (Last);
-            Next(Last) = P;
-        }
+        InsertLast(L,P);
     }
     
 }
@@ -128,6 +113,7 @@ void DelVFirst (List *L, infotype *X)
     P = First(*L);
     *X = Info(P);
     First(*L) = Next(First(*L));
+    Next(P) = Nil;
     Dealokasi (&P);
 }
 /* I.S. List L tidak kosong  */
@@ -135,22 +121,11 @@ void DelVFirst (List *L, infotype *X)
 /*      dan alamat elemen pertama di-dealokasi */
 void DelVLast (List *L, infotype *X)
 {
-    address Last,P;
-    Last = First(*L);
-    if (Next(Last) == Nil)
-    {
-        DelVFirst (L,X);
-    }
-    else
-    {
-        while (Next(Next(Last)) != Nil)
-        {
-            Last = Next(Last);
-        }
-        *X = Info(Next (Last));
-        Next (Last) = Next(Next (Last));
-        
-    }
+    address P;
+    DelLast(L,&P);
+    *X = Info(P);
+    P = Nil;
+    Dealokasi (&P);
 }
 /* I.S. list tidak kosong */
 /* F.S. Elemen terakhir list dihapus: nilai info disimpan pada X */
@@ -206,24 +181,32 @@ void DelFirst (List *L, address *P)
 /* First element yg baru adalah suksesor elemen pertama yang lama */
 void DelP (List *L, infotype X)
 {
-    address P,del;
-    if (!IsEmpty(*L))
+    address P,del,Prec;
+    Prec = First (*L);
+    P = Search (*L,X);
+    if (P != Nil)
     {
-        P = First (*L);
-        if (Info(P) == X)
+        if (P == First(*L))
         {
-            First(*L) = Next(P);
+            del = First(*L);
+            First(*L) = Next(First(*L));
+            Dealokasi (&del);
         }
         else
         {
-            while ( Info (Next (P)) != X)
+            while ((Next(Prec)!=P) && (Next(Prec)!=Nil))
             {
-                P = Next (P);
+                Prec = Next (Prec);
             }
-            Next(P) = Next (Next (P));
+            if(Next(Prec)== P)
+            {
+                del = Next (Prec);
+                Next (Prec) = Next ( Next (Prec));
+                Dealokasi (&del);
+            }
         }
     }
-}
+}//18 -- 21
 /* I.S. Sembarang */
 /* F.S. Jika ada elemen list beraddress P, dengan Info(P)=X  */
 /* Maka P dihapus dari list dan di-dealokasi */
@@ -234,22 +217,25 @@ void DelP (List *L, infotype X)
 void DelLast (List *L, address *P)
 {
     address Last;
-    Last = First (*L);
-    if (Next(Last) == Nil)
+    if ( First (*L)!=Nil)
     {
-        *P = First(*L);
-        First(*L) = Nil;
-    }
-    else
-    {
-        while (Next(Next(Last))!=Nil)
+        Last = First (*L);
+        if (Next(Last) == Nil)
         {
-            Last = Next (Last);
+            *P = Last;
+            First(*L) = Next(Last);
         }
-        *P = Next(Last);
-        Next (Last) = Next (Next (Last));
+        else
+        {
+            while (Next(Next(Last))!=Nil)
+            {
+                Last = Next (Last);
+            }
+            *P = Next(Last);
+            Next (Last) = Next (Next (Last));
+        }
     }
-}
+}//22 23
 /* I.S. List tidak kosong */
 /* F.S. P adalah alamat elemen terakhir list sebelum penghapusan  */
 /*      Elemen list berkurang satu (mungkin menjadi kosong) */
@@ -259,6 +245,7 @@ void DelAfter (List *L, address *Pdel, address Prec)
 {
     *Pdel = Next (Prec);
     Next(Prec) = Next (Next (Prec));
+    Next(*Pdel) = Nil;
 }
 /* I.S. List tidak kosong. Prec adalah anggota list  */
 /* F.S. Menghapus Next(Prec): */
