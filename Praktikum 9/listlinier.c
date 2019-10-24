@@ -173,7 +173,7 @@ void InsertLast (List *L, address P)
 void DelFirst (List *L, address *P)
 {
     *P = First (*L);
-    First(*L) = Next(Next(First(*L)));
+    First(*L) = Next(First(*L));
 }
 /* I.S. List tidak kosong */
 /* F.S. P adalah alamat elemen pertama list sebelum penghapusan */
@@ -181,29 +181,22 @@ void DelFirst (List *L, address *P)
 /* First element yg baru adalah suksesor elemen pertama yang lama */
 void DelP (List *L, infotype X)
 {
-    address P,del,Prec;
-    Prec = First (*L);
-    P = Search (*L,X);
+    address P,Prec,del;
+    P = Search(*L,X);
     if (P != Nil)
     {
         if (P == First(*L))
         {
-            del = First(*L);
-            First(*L) = Next(First(*L));
-            Dealokasi (&del);
+            DelFirst(L,&del);
         }
         else
         {
-            while ((Next(Prec)!=P) && (Next(Prec)!=Nil))
+            Prec = First(*L);
+            while (Info(Next(Prec))!=X)
             {
                 Prec = Next (Prec);
             }
-            if(Next(Prec)== P)
-            {
-                del = Next (Prec);
-                Next (Prec) = Next ( Next (Prec));
-                Dealokasi (&del);
-            }
+            DelAfter(L,&del,Prec);
         }
     }
 }//18 -- 21
