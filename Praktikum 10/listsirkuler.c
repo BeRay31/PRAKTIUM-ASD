@@ -132,51 +132,127 @@ void DelVLast (List *L, infotype * X)
 /*** PENAMBAHAN ELEMEN BERDASARKAN ALAMAT ***/
 void InsertFirst (List *L, address P)
 {
-    if (IsEmpty(*L))
-    {
-        First(*L) = P;
-        Next(First(*L)) = First(*L);
-    }
-    else
-    {
-        Next (P) = First(*L);
-        First(*L) = P;
-        address Prec;
-        
-    }
+    InsertLast (L,P);
+    First(*L) = P;
 }
 /* I.S. Sembarang, P sudah dialokasi  */
 /* F.S. Menambahkan elemen ber-address P sebagai elemen pertama */
 void InsertLast (List *L, address P)
 {
-    address nElmt;
-    nElmt = First(*L);
+    address Elmt = First(*L);
+    if (IsEmpty(*L))
+    {
+        First(*L) = P;
+        Next(P) = P;
+    }
+    else
+    {
+        while(Next(Elmt) != First(*L))
+        {
+            Elmt = Next(Elmt);
+        }
+        InsertAfter(L, P, Elmt);
+    }
 
 }
 /* I.S. Sembarang, P sudah dialokasi  */
 /* F.S. P ditambahkan sebagai elemen terakhir yang baru */
-void InsertAfter (List *L, address P, address Prec);
+void InsertAfter (List *L, address P, address Prec)
+{
+    Next(P) = Next(Prec);
+    Next(Prec) = P;
+}
 /* I.S. Prec pastilah elemen list dan bukan elemen terakhir, */
 /*      P sudah dialokasi  */
 /* F.S. Insert P sebagai elemen sesudah elemen beralamat Prec */
 
 /*** PENGHAPUSAN SEBUAH ELEMEN ***/
-void DelFirst (List *L, address *P);
+void DelFirst (List *L, address *P)
+
+{
+    address last = First(*L);
+
+    if ( Next(last) == First(*L) ){ // only 1 element
+        *P = First(*L);
+        CreateEmpty(L);
+    }
+    else{
+        while(Next(last) != First(*L)){
+            last = Next(last);
+        }
+
+        DelAfter(L,P,last);
+    }
+}
+
 /* I.S. List tidak kosong */
 /* F.S. P adalah alamat elemen pertama list sebelum penghapusan */
 /*      Elemen list berkurang satu (mungkin menjadi kosong) */
 /* First element yg baru adalah suksesor elemen pertama yang lama */
-void DelLast (List *L, address *P);
+void DelLast (List *L, address *P)
+{
+    address prec = First(*L);
+
+    if ( Next(prec) == First(*L) ){ // only 1 element
+        *P = First(*L);
+        CreateEmpty(L);
+    }
+    else{
+        while(Next(Next(prec)) != First(*L)){
+            prec = Next(prec);
+        }
+        DelAfter(L,P,prec);
+    }
+}
 /* I.S. List tidak kosong */
 /* F.S. P adalah alamat elemen terakhir list sebelum penghapusan  */
 /*      Elemen list berkurang satu (mungkin menjadi kosong) */
 /* Last element baru adalah predesesor elemen pertama yg lama, */
 /* jika ada */
-void DelAfter (List *L, address *Pdel, address Prec);
+void DelAfter (List *L, address *Pdel, address Prec)
+{
+    if (Next(Prec) == First(*L)){       // shift first(l)
+        First(*L) = Next(First(*L));
+    }
+
+    if ( Next(First(*L)) == First(*L) ){ // only 1 element
+        CreateEmpty(L);
+    }
+
+    else{
+        *Pdel = Next(Prec);
+        Next(Prec) = Next(Next(Prec));
+    }
+}
 /* I.S. List tidak kosong. Prec adalah anggota list  */
 /* F.S. Menghapus Next(Prec): */
 /*      Pdel adalah alamat elemen list yang dihapus  */
-void DelP (List *L, infotype X);
+void DelP (List *L, infotype X)
+{
+    address P = Search(*L, X);
+    address prec = First(*L);
+    address del;
+
+    if (P != Nil){ // element found
+
+        if ( Next(prec) == First(*L) ){ // only 1 element
+            CreateEmpty(L);
+        }
+
+        else{
+
+            /* Search for predecessor of X */
+            while(Next(prec) != P){
+                prec = Next(prec);
+            }
+
+            /* got the prec of P */
+            DelAfter(L, &del, prec);
+            Dealokasi(del);
+
+        }
+    }
+}
 /* I.S. Sembarang */
 /* F.S. Jika ada elemen list beraddress P, dengan Info(P)=X  */
 /* Maka P dihapus dari list dan di-dealokasi */
@@ -184,7 +260,27 @@ void DelP (List *L, infotype X);
 /* List mungkin menjadi kosong karena penghapusan */
 
 /****************** PROSES SEMUA ELEMEN LIST ******************/
-void PrintInfo (List L);
+void PrintInfo (List L)
+{
+    address prnt;
+    if (!IsEmpty(L))
+    {
+        printf("[");
+        prnt = First (L);
+        printf("%d",Info(prnt));
+        while (Next(prnt) != First(L))
+        {
+            prnt = Next(prnt);
+            printf(",%d",Info(prnt));
+        }
+        printf ("]");
+    }
+    else
+    {
+        printf ("[]");
+    }
+    
+}
 /* I.S. List mungkin kosong */
 /* F.S. Jika list tidak kosong, iai list dicetak ke kanan: [e1,e2,...,en] */
 /* Contoh : jika ada tiga elemen bernilai 1, 20, 30 akan dicetak: [1,20,30] */
